@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import io from "socket.io-client";
-import { setRoom, setUser } from "../state/actions";
 
 // const socket = io("http://127.0.0.1:5000");
 

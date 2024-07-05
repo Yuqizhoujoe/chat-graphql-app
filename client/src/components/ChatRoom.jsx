@@ -3,11 +3,14 @@ import { useNavigate, useParams } from "react-router-dom";
 import axios from "../apis/axios";
 
 import "../styles/ChatRoom.css"; // Import the CSS file
-import { useAppContext } from "../shared/context";
+
 import useSocket from "../shared/useSocket";
+import UserPanel from "./UserPanel";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "../state/actions";
 
 const ChatRoom = () => {
-  const { roomId } = useParams();
+  const { roomId, username } = useParams();
   const navigate = useNavigate();
 
   const [message, setMessage] = useState("");
@@ -18,7 +21,11 @@ const ChatRoom = () => {
   const { socket, connected } = useSocket("http://localhost:8000");
 
   // Context
-  const { user } = useAppContext();
+  // const { user } = useAppContext();
+
+  // User Reducer
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user);
 
   // joinRoom
   useEffect(() => {
@@ -28,7 +35,6 @@ const ChatRoom = () => {
         timestamp: new Date().toISOString(),
         user: user,
       };
-      console.log("JOIN_ROOM: ", data);
       socket.emit("joinRoom", data);
     }
   }, [user, socket]);
@@ -46,11 +52,12 @@ const ChatRoom = () => {
   useEffect(() => {
     const fetchRoom = async () => {
       try {
-        const response = await axios.get(`/rooms/${roomId}`);
-        const roomData = response.data || {};
+        const response = await axios.get(`/rooms/${roomId}/${username}`);
+        const { room: roomData, user: userData } = response.data || {};
 
         if (roomData) {
           setRoom(roomData);
+          dispatch(setUser(userData));
           if (roomData.messages.length) {
             setMessages(roomData.messages);
           }
@@ -62,7 +69,7 @@ const ChatRoom = () => {
     };
 
     fetchRoom();
-  }, [roomId, navigate]);
+  }, [roomId, username, navigate]);
 
   // handle new message
   const sendMessage = () => {
@@ -96,22 +103,30 @@ const ChatRoom = () => {
     setMessage("");
   };
 
-  return (
-    <div className="chat-room-container">
-      <div className="messages-container">
-        {messages.map((message, index) => (
-          <div key={index} className="message">
-            <img
-              src={`http://127.0.0.1:8000${message.avatar}`}
-              alt={`${message.username} avatar`}
-              className="avatar"
-            />
-            <div className="message-content">
-              <strong>{message.username}: </strong> {message.content}
+  const renderUserAndMessages = () => {
+    return (
+      <div className="chat-room-user-messages-container">
+        <div className="messages-container">
+          {messages.map((message, index) => (
+            <div key={index} className="message">
+              <img
+                src={`http://127.0.0.1:8000${message.avatar}`}
+                alt={`${message.username} avatar`}
+                className="avatar"
+              />
+              <div className="message-content">
+                <strong>{message.username}: </strong> {message.content}
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
+        <UserPanel users={room.users} />
       </div>
+    );
+  };
+
+  const renderMessageInput = () => {
+    return (
       <div className="message-input-container">
         <input
           type="text"
@@ -126,6 +141,13 @@ const ChatRoom = () => {
           Send
         </button>
       </div>
+    );
+  };
+
+  return (
+    <div className="chat-room-container">
+      {renderUserAndMessages()}
+      {renderMessageInput()}
     </div>
   );
 };

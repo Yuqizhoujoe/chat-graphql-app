@@ -4,7 +4,8 @@ import { useDropzone } from "react-dropzone";
 import axios from "../apis/axios";
 
 import "../styles/RoomEntry.css";
-import { useAppContext } from "../shared/context";
+import { useDispatch, useSelector } from "react-redux";
+import { setUser } from "../state/actions";
 
 const RoomEntry = () => {
   const { roomId } = useParams();
@@ -15,12 +16,13 @@ const RoomEntry = () => {
   const [avatar, setAvatar] = useState(null);
   const [avatarPreview, setAvatarPreview] = useState("");
 
+  // User Reducer
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user);
+
   // search users
   const [query, setQuery] = useState("");
   const [users, setUsers] = useState([]);
-
-  // Context
-  const { user, setUser } = useAppContext();
 
   // debounce
   const [oldTimeout, setTime] = useState(null);
@@ -68,12 +70,8 @@ const RoomEntry = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    // select existed user
-    if (user) {
-      navigate(`/chat-room/${roomId}`);
-    }
     // create a new user
-    else if (username && avatar) {
+    if (!user) {
       const formData = new FormData();
       formData.append("username", username);
       formData.append("avatar", avatar);
@@ -84,13 +82,14 @@ const RoomEntry = () => {
         },
       });
       const user = response.data || {};
-      setUser(user);
-      navigate(`/chat-room/${roomId}`);
+      dispatch(setUser(user));
     }
+
+    navigate(`/chat-room/${roomId}/${username}`);
   };
 
   const handleUserSelect = (selectedUser) => {
-    setUser(selectedUser);
+    dispatch(setUser(selectedUser));
     setUsername(selectedUser.username);
     setAvatarPreview(`http://127.0.0.1:8000${selectedUser.avatar}`);
   };

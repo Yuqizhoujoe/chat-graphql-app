@@ -5,6 +5,7 @@ import {
   getRoomById,
   getAllRooms,
   createNewRoom,
+  addUserToRoom,
 } from "../services/roomService.js";
 
 const router = express.Router();
@@ -21,12 +22,20 @@ const getRooms = async (req, res) => {
 
 const getRoom = async (req, res) => {
   try {
-    const { roomId } = req.params;
+    const { roomId, username } = req.params;
+    console.log("ROOM_CONTROLLER_GET_ROOM: ", { roomId, username });
+
     const room = await getRoomById(roomId);
     if (!room) {
       return res.status(404).json({ error: "Room not exist!" });
     }
-    return res.status(200).json(room);
+
+    // add user to room
+    const { user, room: updatedRoom } = await addUserToRoom({ room, username });
+
+    console.log("ROOM_CONTROLLER_GET_ROOM_RESULT: ", { updatedRoom, user });
+
+    return res.status(200).json({ room: updatedRoom, user });
   } catch (error) {
     console.log("ROOM_CONTROLLER_GET_ROOM_ERROR: ", error);
     return res.status(500).json({ error: error.message });
@@ -46,7 +55,7 @@ const createRoom = async (req, res) => {
 };
 
 router.get("/", getRooms);
-router.get("/:roomId", getRoom);
+router.get("/:roomId/:username", getRoom);
 router.post("/create-room", createRoom);
 
 export default router;
