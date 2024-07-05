@@ -124,6 +124,5 @@ build
 Thumbs.db
 ehthumbs.db
 
-.idea
-
 playground.js
+package-lock.json
