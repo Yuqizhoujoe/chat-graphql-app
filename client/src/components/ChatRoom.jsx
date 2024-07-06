@@ -4,10 +4,16 @@ import axios from "../apis/axios";
 
 import "../styles/ChatRoom.css"; // Import the CSS file
 
-import useSocket from "../shared/useSocket";
+// import useSocket from "../shared/useSocket";
 import UserPanel from "./UserPanel";
 import { useDispatch, useSelector } from "react-redux";
 import { setUser } from "../state/actions";
+import { useMutation, useSubscription } from "@apollo/client";
+import {
+  JOIN_ROOM_MUTATION,
+  MESSAGE_ADDED_SUBSCRIPTION,
+  SEND_MESSAGE_MUTATION,
+} from "../graphql";
 
 const ChatRoom = () => {
   const { roomId, username } = useParams();
@@ -18,15 +24,9 @@ const ChatRoom = () => {
   const [room, setRoom] = useState({});
 
   // WebSocket Hook
-  const { socket, connected } = useSocket("http://localhost:8000");
+  // const { socket, connected } = useSocket("http://localhost:8000");
 
-  // Context
-  // const { user } = useAppContext();
-
-  // User Reducer
-  const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.user);
-
+  /*
   // joinRoom
   useEffect(() => {
     if (user && socket) {
@@ -47,6 +47,68 @@ const ChatRoom = () => {
       });
     }
   }, [socket, connected]);
+
+  // handle new message
+  const sendMessage = () => {
+    console.log(socket, connected, user, message);
+    if (socket && connected && user && message) {
+      const data = {
+        roomId: roomId,
+        message: {
+          content: message,
+          username: user.username,
+          avatar: user.avatar,
+          timestamp: new Date().toISOString(),
+        },
+      };
+
+      console.log("SEND_MESSAGE: ", data);
+      socket.emit("message", data);
+    }
+  };
+  */
+
+  // GraphQL WebSocket Streaming
+  const [joinRoom] = useMutation(JOIN_ROOM_MUTATION);
+  const [sendMessage] = useMutation(SEND_MESSAGE_MUTATION);
+  useSubscription(MESSAGE_ADDED_SUBSCRIPTION, {
+    variables: { roomId },
+    onData: (response) => {
+      const { messageAdded } = response.data.data || {};
+      if (messageAdded) {
+        setMessages((prevMessages) => [...prevMessages, messageAdded]);
+      }
+    },
+    onError: (error) => console.error("GRAPHQL_SUBSCRIPTION_ERROR: ", error),
+  });
+
+  // Context
+  // const { user } = useAppContext();
+
+  // User Reducer
+  const dispatch = useDispatch();
+  const { user } = useSelector((state) => state.user);
+
+  // join room
+  useEffect(() => {
+    const existedUser =
+      room.users &&
+      room.users.length &&
+      room.users.find((u) => u.username === user.username);
+
+    if (user && !existedUser && room && room.roomId) {
+      joinRoom({
+        variables: {
+          roomId,
+          timestamp: new Date().toISOString(),
+          user: {
+            username: user.username,
+            avatar: user.avatar,
+          },
+        },
+      });
+    }
+  }, [user, roomId, room]);
 
   // fetch room
   useEffect(() => {
@@ -71,25 +133,6 @@ const ChatRoom = () => {
     fetchRoom();
   }, [roomId, username, navigate]);
 
-  // handle new message
-  const sendMessage = () => {
-    console.log(socket, connected, user, message);
-    if (socket && connected && user && message) {
-      const data = {
-        roomId: roomId,
-        message: {
-          content: message,
-          username: user.username,
-          avatar: user.avatar,
-          timestamp: new Date().toISOString(),
-        },
-      };
-
-      console.log("SEND_MESSAGE: ", data);
-      socket.emit("message", data);
-    }
-  };
-
   const handleKeyDown = (event) => {
     if (event.key === "Enter") {
       handleSendMessage(event);
@@ -99,7 +142,17 @@ const ChatRoom = () => {
   const handleSendMessage = (event) => {
     if (event) event.preventDefault();
     // sendMessage(room, user, message);
-    sendMessage();
+    sendMessage({
+      variables: {
+        roomId,
+        message: {
+          timestamp: new Date().toISOString(),
+          username: user.username,
+          avatar: user.avatar,
+          content: message,
+        },
+      },
+    });
     setMessage("");
   };
 

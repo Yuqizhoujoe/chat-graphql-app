@@ -4,7 +4,7 @@ import { getUserByUsername } from "./userService.js";
 export const getRoomById = async (roomId) => {
   const room = await Room.findOne({ roomId });
   if (room) {
-    room.messages.sort((a, b) => a.timestamp - b.timestamp);
+    room.messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
   }
   return room;
 };
@@ -53,7 +53,8 @@ export const addUserToRoom = async ({ room, username }) => {
   const user = await getUserByUsername(username);
   // add user to the room
   const users = room.users || [];
-  if (!users.length || users.some((user) => user.username !== username)) {
+  const existedUser = users.find((user) => user.username === username);
+  if (!users.length || !existedUser) {
     room.users.push({ username: user.username, avatar: user.avatar });
   }
   console.log("ROOM_SERVICE_ADD_USER_TO_ROOM: ", room);

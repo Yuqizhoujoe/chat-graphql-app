@@ -15,6 +15,7 @@ import "./models/postgres.js";
 // controllers
 import roomControllers from "./controllers/roomController.js";
 import userControllers from "./controllers/userController.js";
+import chatControllers from "./controllers/chatController.js";
 
 // get __dirname in ES module scope
 import { fileURLToPath } from "url";
@@ -98,6 +99,7 @@ app.use("/users/create-user", upload.single("avatar"));
 
 app.use("/rooms", roomControllers);
 app.use("/users", userControllers);
+app.use("/chats", chatControllers);
 
 const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => {

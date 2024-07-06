@@ -5,13 +5,25 @@ const typeDefs = gql`
     _: Boolean
   }
 
+  input UserInput {
+    username: String!
+    avatar: String!
+  }
+
+  input MessageInput {
+    timestamp: String!
+    username: String!
+    avatar: String!
+    content: String!
+  }
+
   type Mutation {
-    joinRoom(roomId: ID!, timestamp: String!, user: User!): RoomResponse
-    sendMessage(roomId: ID!, message: Message!): RoomResponse
+    joinRoom(roomId: ID!, timestamp: String!, user: UserInput!): RoomResponse
+    sendMessage(roomId: ID!, message: MessageInput!): RoomResponse
   }
 
   type Subscription {
-    receiveNewMessage(roomId: ID!): Message
+    messageAdded(roomId: ID!): Message
   }
 
   type Message {
@@ -31,4 +43,5 @@ const typeDefs = gql`
     message: Message
   }
 `;
+
 export default typeDefs;

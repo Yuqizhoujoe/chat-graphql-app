@@ -11,6 +11,10 @@ import { Provider } from "react-redux";
 
 import { AppContextProvider } from "./shared/context";
 
+// GraphQL
+import { ApolloProvider } from "@apollo/client";
+import client from "./ApolloClient";
+
 const reducer = combineReducers({
   user: userReducer,
   room: roomReducer,
@@ -20,9 +24,11 @@ const store = createStore(reducer);
 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
-  <AppContextProvider>
-    <Provider store={store}>
-      <App />
-    </Provider>
-  </AppContextProvider>
+  <ApolloProvider client={client}>
+    <AppContextProvider>
+      <Provider store={store}>
+        <App />
+      </Provider>
+    </AppContextProvider>
+  </ApolloProvider>
 );
