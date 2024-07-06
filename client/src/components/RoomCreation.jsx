@@ -1,33 +1,30 @@
-import React, { useState } from "react";
-import axios from "../apis/axios";
+import React, { useRef, useState } from "react";
 
 import "../styles/RoomCreation.css";
 
-const RoomCreation = () => {
+const RoomCreation = ({ createRoom }) => {
   const [title, setTitle] = useState("");
   const [description, setDesc] = useState("");
   const [picture, setPicture] = useState(null);
+  const fileInputRef = useRef(null);
 
   const handleFileChange = (event) => {
     setPicture(event.target.files[0]);
   };
 
-  const createRoom = async () => {
+  const onCreateRoom = async () => {
     const formData = new FormData();
     formData.append("title", title);
     formData.append("description", description);
     formData.append("picture", picture);
 
     try {
-      await axios.post("/rooms/create-room", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await createRoom(formData);
 
       setTitle("");
       setDesc("");
       setPicture(null);
+      fileInputRef.current.value = null;
     } catch (error) {
       console.error("Error creating room: ", error);
     }
@@ -56,9 +53,10 @@ const RoomCreation = () => {
         type="file"
         name="picture"
         id="picture"
+        ref={fileInputRef}
         onChange={handleFileChange}
       />
-      <button onClick={createRoom}>Create Room</button>
+      <button onClick={onCreateRoom}>Create Room</button>
     </div>
   );
 };

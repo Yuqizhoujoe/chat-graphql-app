@@ -30,7 +30,6 @@ const ChatRoom = () => {
       console.error("JOIN_ROOM_MUTATION_ERROR: ", error);
     },
     onCompleted: (data) => {
-      console.log(data);
       const { room: roomData, user: userData } = data.joinRoom || {};
       setRoom(roomData);
       dispatch(setUser(userData));
@@ -167,7 +166,7 @@ export default ChatRoom;
       const data = {
         roomId: roomId,
         message: {
-          content: message,
+          content: message
           username: user.username,
           avatar: user.avatar,
           timestamp: new Date().toISOString(),

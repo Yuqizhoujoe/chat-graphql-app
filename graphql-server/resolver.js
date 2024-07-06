@@ -36,13 +36,10 @@ const resolvers = {
         timestamp: new Date().toISOString(),
       };
       // add message to the room
-      const response = await axios.post(
-        "http://localhost:8000/chats/send-message",
-        {
-          roomId,
-          message: messageData,
-        }
-      );
+      const response = await axios.post("/chats/send-message", {
+        roomId,
+        message: messageData,
+      });
       console.log(
         "GRAPHQL_SERVER_SEND_MESSAGE_RESPONSE: ",
         response && response.data

@@ -28,6 +28,17 @@ const Home = () => {
     navigate(`/room-entry/${roomId}`);
   };
 
+  const onCreateRoom = async (formData) => {
+    try {
+      const response = await axios.post("/rooms/create-room", formData);
+      if (response && response.data) {
+        setRooms((prevRooms) => [...prevRooms, response.data]);
+      }
+    } catch (error) {
+      console.error("ON_CREATE_ROOM_HOME_PAGE_ERROR: ", error);
+    }
+  };
+
   const renderRoom = (room) => {
     return (
       <div key={room.roomId} className="room-card">
@@ -48,7 +59,7 @@ const Home = () => {
   return (
     <div className="home-page">
       <h1>Chat rooms</h1>
-      <RoomCreation />
+      <RoomCreation createRoom={onCreateRoom} />
       <div className="grid-container">
         {rooms.map((room) => renderRoom(room))}
       </div>
