@@ -18,7 +18,7 @@ const RoomEntry = () => {
 
   // User Reducer
   const dispatch = useDispatch();
-  const { user } = useSelector((state) => state.user);
+  // const { user } = useSelector((state) => state.user);
 
   // search users
   const [query, setQuery] = useState("");
@@ -71,27 +71,26 @@ const RoomEntry = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     // create a new user
-    if (!user) {
-      const formData = new FormData();
-      formData.append("username", username);
-      formData.append("avatar", avatar);
+    const formData = new FormData();
+    formData.append("username", username);
+    formData.append("avatar", avatar);
 
-      const response = await axios.post("/users/create-user", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      const user = response.data || {};
-      dispatch(setUser(user));
-    }
+    const response = await axios.post("/users/create-user", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+    const user = response.data || {};
+    dispatch(setUser(user));
 
-    navigate(`/chat-room/${roomId}/${username}`);
+    navigate(`/chat-room/${roomId}`, { state: { username: user.username } });
   };
 
   const handleUserSelect = (selectedUser) => {
     dispatch(setUser(selectedUser));
-    setUsername(selectedUser.username);
-    setAvatarPreview(`http://127.0.0.1:8000${selectedUser.avatar}`);
+    navigate(`/chat-room/${roomId}`, {
+      state: { username: selectedUser.username },
+    });
   };
 
   const renderCreateUserForm = () => {

@@ -1,14 +1,27 @@
 import { gql } from "@apollo/client";
 
 export const JOIN_ROOM_MUTATION = gql`
-  mutation JoinRoom($roomId: ID!, $timestamp: String!, $user: UserInput!) {
-    joinRoom(roomId: $roomId, timestamp: $timestamp, user: $user) {
-      roomId
-      message {
-        timestamp
+  mutation JoinRoom($roomId: ID!, $username: String!) {
+    joinRoom(roomId: $roomId, username: $username) {
+      room {
+        roomId
+        title
+        description
+        picture
+        messages {
+          timestamp
+          username
+          avatar
+          content
+        }
+        users {
+          username
+          avatar
+        }
+      }
+      user {
         username
         avatar
-        content
       }
     }
   }

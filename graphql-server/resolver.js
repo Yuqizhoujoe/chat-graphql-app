@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios from "./axios.js";
 
 import { PubSub } from "graphql-subscriptions";
 
@@ -12,25 +12,35 @@ const resolvers = {
   },
 
   Mutation: {
-    joinRoom: async (_, { roomId, timestamp, user }) => {
+    // TODO: custom error handler for graphql
+    joinRoom: async (_, { roomId, username }) => {
+      const response = await axios.get(`/rooms/${roomId}/${username}`);
+      const { room, user } = response.data || {};
+
       const message = {
-        timestamp,
+        timestamp: new Date().toISOString(),
         username: user.username,
         avatar: user.avatar,
         content: `${user.username} joined the room`,
       };
 
+      // console.log("JOIN_ROOM_GRAPHQL_SERVER: ", { message, room, user });
+
       pubsub.publish(`${MESSAGE_ADDED}_${roomId}`, { messageAdded: message });
 
-      return { roomId, message };
+      return { room, user };
     },
     sendMessage: async (_, { roomId, message }) => {
+      const messageData = {
+        ...message,
+        timestamp: new Date().toISOString(),
+      };
       // add message to the room
       const response = await axios.post(
         "http://localhost:8000/chats/send-message",
         {
           roomId,
-          message,
+          message: messageData,
         }
       );
       console.log(
@@ -38,9 +48,11 @@ const resolvers = {
         response && response.data
       );
 
-      pubsub.publish(`${MESSAGE_ADDED}_${roomId}`, { messageAdded: message });
+      pubsub.publish(`${MESSAGE_ADDED}_${roomId}`, {
+        messageAdded: messageData,
+      });
 
-      return { roomId, message };
+      return { roomId, message: messageData };
     },
   },
 
